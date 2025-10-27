@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>领星ERP系统各部门功能展示</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #1abc9c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --success: #2ecc71;
+            --warning: #e74c3c;
+            --info: #3498db;
+            --gray: #95a5a6;
+            --card-bg: rgba(255, 255, 255, 0.95);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a3a 0%, #2c3e50 100%);
+            color: #333;
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        .ppt-container {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+        }
+        
+        .slide {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: none;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.6s ease;
+        }
+        
+        .slide.active {
+            display: flex;
+            flex-direction: column;
+            opacity: 1;
+        }
+        
+        .slide-content {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            width: 95%;
+            max-width: 1200px;
+            height: 90%;
+            margin: 0 auto;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--light);
+            position: relative;
+        }
+        
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--secondary), var(--accent));
+            border-radius: 2px;
+        }
+        
+        .header h1 {
+            color: var(--primary);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        
+        .header h2 {
+            color: var(--gray);
+            font-size: 1.4rem;
+            font-weight: 400;
+        }
+        
+        /* 3D卡片布局 */
+        .cards-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex: 1;
+            gap: 30px;
+            perspective: 1500px;
+            margin-top: 20px;
+        }
+        
+        .card {
+            width: 320px;
+            height: 420px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+        
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+        
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+            text-align: center;
+            overflow: hidden;
+        }
+        
+        .card-front {
+            background: white;
+            color: var(--primary);
+        }
+        
+        .card-back {
+            background: white;
+            color: var(--primary);
+            transform: rotateY(180deg);
+            overflow-y: auto;
+            padding: 25px;
+        }
+        
+        .card-icon {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 25px;
+            font-size: 2.2rem;
+            color: white;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .card.available .card-icon {
+            background: linear-gradient(135deg, var(--success), #27ae60);
+        }
+        
+        .card.unavailable .card-icon {
+            background: linear-gradient(135deg, var(--warning), #c0392b);
+        }
+        
+        .card.daily-tasks .card-icon {
+            background: linear-gradient(135deg, var(--info), #2980b9);
+        }
+        
+        .card-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+        
+        .card-description {
+            font-size: 1.1rem;
+            color: var(--gray);
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+        
+        .flip-hint {
+            position: absolute;
+            bottom: 20px;
+            color: var(--gray);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .card-content {
+            width: 100%;
+        }
+        
+        .card-list {
+            list-style-type: none;
+            width: 100%;
+        }
+        
+        .card-list li {
+            padding: 15px;
+            margin-bottom: 12px;
+            background: #f8fafc;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            line-height: 1.5;
+            font-size: 1rem;
+            border-left: 5px solid var(--success);
+            text-align: left;
+        }
+        
+        .card.unavailable .card-list li {
+            border-left: 5px solid var(--warning);
+        }
+        
+        .card.daily-tasks .card-list li {
+            border-left: 5px solid var(--info);
+        }
+        
+        .card-list li:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+        
+        /* 全屏详情页样式 */
+        .fullscreen-detail {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--card-bg);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            animation: slideInUp 0.5s ease;
+        }
+        
+        .fullscreen-detail.active {
+            display: flex;
+        }
+        
+        @keyframes slideInUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .detail-header {
+            display: flex;
+            align-items: center;
+            padding: 25px 30px;
+            border-bottom: 2px solid var(--light);
+            background: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .detail-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+            font-size: 1.8rem;
+            color: white;
+        }
+        
+        .detail-title {
+            font-size: 2.2rem;
+            color: var(--primary);
+            font-weight: 700;
+        }
+        
+        .back-btn {
+            background: var(--light);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--primary);
+            font-size: 1.3rem;
+            margin-left: auto;
+        }
+        
+        .back-btn:hover {
+            background: var(--secondary);
+            color: white;
+            transform: translateX(-3px);
+        }
+        
+        .detail-content {
+            padding: 30px;
+            flex: 1;
+            overflow-y: auto;
+            background: #f8fafc;
+        }
+        
+        .detail-list {
+            list-style-type: none;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .detail-list li {
+            padding: 20px 25px;
+            margin-bottom: 15px;
+            background: white;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            line-height: 1.6;
+            font-size: 1.1rem;
+            border-left: 6px solid var(--success);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .detail-list li:hover {
+            transform: translateX(5px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .unavailable-detail .detail-list li {
+            border-left: 6px solid var(--warning);
+        }
+        
+        .daily-detail .detail-list li {
+            border-left: 6px solid var(--info);
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 15px;
+            color: var(--gray);
+            font-size: 14px;
+        }
+        
+        .slide-indicator {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--primary);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .navigation {
+            position: absolute;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+        }
+        
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+        
+        .nav-btn:hover {
+            background: white;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .nav-btn:active {
+            transform: translateY(0);
+        }
+        
+        .department-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            color: white;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+        
+        .cover-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            text-align: center;
+        }
+        
+        .cover-icon {
+            font-size: 100px;
+            margin-bottom: 25px;
+            color: var(--secondary);
+        }
+        
+        .cover-title {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+        
+        .cover-subtitle {
+            font-size: 1.6rem;
+            color: var(--gray);
+            margin-bottom: 25px;
+            max-width: 700px;
+            line-height: 1.5;
+        }
+        
+        .cover-description {
+            font-size: 1.1rem;
+            color: var(--gray);
+            max-width: 600px;
+            line-height: 1.6;
+            margin-bottom: 35px;
+        }
+        
+        .key-hint {
+            margin-top: 35px;
+            color: var(--gray);
+            font-size: 1rem;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 10px;
+        }
+        
+        @media (max-width: 1200px) {
+            .cards-container {
+                gap: 20px;
+            }
+            
+            .card {
+                width: 280px;
+                height: 380px;
+            }
+        }
+        
+        @media (max-width: 900px) {
+            .cards-container {
+                flex-direction: column;
+                gap: 20px;
+                overflow-y: auto;
+                padding: 10px 0;
+            }
+            
+            .card {
+                width: 90%;
+                height: 350px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .slide-content {
+                padding: 20px;
+                width: 98%;
+                height: 95%;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .header h2 {
+                font-size: 1.1rem;
+            }
+            
+            .cover-title {
+                font-size: 2.2rem;
+            }
+            
+            .cover-subtitle {
+                font-size: 1.3rem;
+            }
+            
+            .cover-description {
+                font-size: 1rem;
+            }
+            
+            .card {
+                height: 320px;
+            }
+            
+            .card-icon {
+                width: 70px;
+                height: 70px;
+                font-size: 1.8rem;
+                margin-bottom: 20px;
+            }
+            
+            .card-title {
+                font-size: 1.5rem;
+            }
+            
+            .detail-header {
+                padding: 20px;
+            }
+            
+            .detail-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+                margin-right: 15px;
+            }
+            
+            .detail-title {
+                font-size: 1.8rem;
+            }
+            
+            .detail-content {
+                padding: 20px;
+            }
+            
+            .detail-list li {
+                padding: 15px 20px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="ppt-container">
+        <!-- 封面页 -->
+        <div class="slide active" id="slide-0">
+            <div class="slide-content">
+                <div class="cover-content">
+                    <div class="cover-icon">📊</div>
+                    <h1 class="cover-title">领星ERP系统各部门功能展示</h1>
+                    <h2 class="cover-subtitle">跨境电商管理解决方案</h2>
+                    <p class="cover-description">
+                        点击卡片查看详细功能说明，卡片翻转展示可实现功能、不可实现功能以及部门日常工作内容。
+                    </p>
+                    <div class="key-hint">使用 ← → 方向键或点击下方按钮切换页面</div>
+                </div>
+                <div class="slide-indicator">1 / 6</div>
+            </div>
+        </div>
+        
+        <!-- 产品部门 -->
+        <div class="slide" id="slide-1">
+            <div class="slide-content">
+                <div class="header">
+                    <h1>产品部</h1>
+                    <h2>产品管理</h2>
+                    <div class="department-badge"></div>
+                </div>
+                <div class="cards-container">
+                    <!-- 可实现功能卡片 -->
+                    <div class="card available" data-detail="product-available">
+                        <div class="card-face card-front">
+                            <div class="card-icon">✓</div>
+                            <h3 class="card-title">可实现功能</h3>
+                            <p class="card-description">点击卡片翻转查看详情</p>
+                            <div class="flip-hint">
+                                <i class="fas fa-sync-alt"></i> 点击翻转
+                            </div>
+                        </div>
+                        <div class="card-face card-back">
+                            <div class="card-content">
+                                <h3 class="card-title">可实现功能</h3>
+                                <ul class="card-list">
+                                    <li><strong>产品管理</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_1()"> 领星链接</a></li>
+                                    <li><strong>SKU销售表现</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_2()"> 领星链接</a></li>
+                                    <li><strong>竞品价格与排名监控</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_3()"> 领星链接</a></li>
+                                    <li><strong>产品评价与反馈汇总</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_4()"> 领星链接</a></li>
+                                    <li><strong>产品退货率与原因分析</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_5()"> 领星链接</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 不可实现功能卡片 -->
+                    <div class="card unavailable" data-detail="product-unavailable">
+                        <div class="card-face card-front">
+                            <div class="card-icon">✗</div>
+                            <h3 class="card-title">不可实现功能</h3>
+                            <p class="card-description">点击卡片翻转查看详情</p>
+                            <div class="flip-hint">
+                                <i class="fas fa-sync-alt"></i> 点击翻转
+                            </div>
+                        </div>
+                        <div class="card-face card-back">
+                            <div class="card-content">
+                                <h3 class="card-title">不可实现功能</h3>
+                                <ul class="card-list">
+                                    <li><strong>利润分析</strong> - 利润不准确</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 日常任务卡片 -->
+                    <div class="card daily-tasks" data-detail="product-daily">
+                        <div class="card-face card-front">
+                            <div class="card-icon">📝</div>
+                            <h3 class="card-title">部门日常需要做的</h3>
+                            <p class="card-description">点击卡片翻转查看详情</p>
+                            <div class="flip-hint">
+                                <i class="fas fa-sync-alt"></i> 点击翻转
+                            </div>
+                        </div>
+                        <div class="card-face card-back">
+                            <div class="card-content">
+                                <h3 class="card-title">部门日常需要做的</h3>
+                                <ul class="card-list">
+                                    <li><strong>SKU信息创建、更新</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_1()">领星链接</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="slide-indicator">2 / 6</div>
+            </div>
+        </div>
+        
+        <!-- 采购部门 -->
+        <div class="slide" id="slide-2">
+            <div class="slide-content">
+                <div class="header">
+                    <h1>采购部</h1>
+                    <h2>供应商与采购管理</h2>
+                    <div class="department-badge">供应链管理</div>
+                </div>
+                <div class="cards-container">
+                    <!-- 可实现功能卡片 -->
+                    <div class="card available" data-detail="purchase-available">
+                        <div class="card-face card-front">
+                            <div class="card-icon">✓</div>
+                            <h3 class="card-title">可实现功能</h3>
+                            <p class="card-description">点击卡片翻转查看详情</p>
+                            <div class="flip-hint">
+                                <i class="fas fa-sync-alt"></i> 点击翻转
+                            </div>
+                        </div>
+                        <div class="card-face card-back">
+                            <div class="card-content">
+                                <h3 class="card-title">可实现功能</h3>
+                                <ul class="card-list">
+                                    <li><strong>供应商维护与查询</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_7()"> 领星链接</a></li>
+                                    <li><strong>采购成本与价格趋势分析</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_8()"> 领星链接</a></li>
+                                    <li><strong>采购订单执行跟踪</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_9()"> 领星链接</a></li>
+                                    <li><strong>采购到货入库跟踪</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_10()"> 领星链接</a></li>
+                                    <li><strong>供应商账期与付款管理</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_11()"> 领星链接</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 不可实现功能卡片 -->
+                    <div class="card unavailable" data-detail="purchase-unavailable">
+                        <div class="card-face card-front">
+                            <div class="card-icon">✗</div>
+                            <h3 class="card-title">不可实现功能</h3>
+                            <p class="card-description">点击卡片翻转查看详情</p>
+                            <div class="flip-hint">
+                                <i class="fas fa-sync-alt"></i> 点击翻转
+                            </div>
+                        </div>
+                        <div class="card-face card-back">
+                            <div class="card-content">
+                                <h3 class="card-title">不可实现功能</h3>
+                                <ul class="card-list">
+                                    <li><strong>暂无</strong>  </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 日常任务卡片 -->
+                    <div class="card daily-tasks" data-detail="purchase-daily">
+                        <div class="card-face card-front">
+                            <div class="card-icon">📝</div>
+                            <h3 class="card-title">部门需要做的</h3>
+                            <p class="card-description">点击卡片翻转查看详情</p>
+                            <div class="flip-hint">
+                                <i class="fas fa-sync-alt"></i> 点击翻转
+                            </div>
+                        </div>
+                        <div class="card-face card-back">
+                            <div class="card-content">
+                                <h3 class="card-title">部门需要做的</h3>
+                                <ul class="card-list">
+                                    <li><strong>采购下单</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_12()"> 领星链接</a></li>
+                                    <li><strong>采购入库</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_9()"> 领星链接</a></li>
+                                    <li><strong>质检</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_14()"> 领星链接</a></li>
+                                    <li><strong>付款申请（预付款、尾款）</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_11()"> 领星链接</a></li>
+                                    <li><strong>SKU信息维护（箱规、装箱数等）</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_1()"> 领星链接</a></li>
+                                    <li><strong>SKU组装</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_15()"> 领星链接</a></li>
+                                    <li><strong>供应商维护、更新</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_7()"> 领星链接</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="slide-indicator">3 / 6</div>
+            </div>
+        </div>
+        
+        <!-- 计划部门 -->
+        <div class="slide" id="slide-3">
+            <div class="slide-content">
+                <div class="header">
+                    <h1>计划部</h1>
+                    <h2>计划数据查询</h2>
+                    <div class="department-badge">库存与计划管理</div>
+                </div>
+                <div class="cards-container">
+                    <!-- 可实现功能卡片 -->
+                    <div class="card available" data-detail="plan-available">
+                        <div class="card-face card-front">
+                            <div class="card-icon">✓</div>
+                            <h3 class="card-title">可实现功能</h3>
+                            <p class="card-description">点击卡片翻转查看详情</p>
+                            <div class="flip-hint">
+                                <i class="fas fa-sync-alt"></i> 点击翻转
+                            </div>
+                        </div>
+                        <div class="card-face card-back">
+                            <div class="card-content">
+                                <h3 class="card-title">可实现功能</h3>
+                                <ul class="card-list">
+                                    <li><strong>请购数量查询</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_12()"> 领星链接</a></li>
+                                    <li><strong>采购数据查询</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_9()"> 领星链接</a></li>
+                                    <li><strong>未交数量查询</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_9()"> 领星链接</a></li>
+                                    <li><strong>库存报表</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_16()"> 领星链接</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 不可实现功能卡片 -->
+                    <div class="card unavailable" data-detail="plan-unavailable">
+                        <div class="card-face card-front">
+                            <div class="card-icon">✗</div>
+                            <h3 class="card-title">不可实现功能</h3>
+                            <p class="card-description">点击卡片翻转查看详情</p>
+                            <div class="flip-hint">
+                                <i class="fas fa-sync-alt"></i> 点击翻转
+                            </div>
+                        </div>
+                        <div class="card-face card-back">
+                            <div class="card-content">
+                                <h3 class="card-title">不可实现功能</h3>
+                                <ul class="card-list">
+                                    <li><strong>请购数量、采购数量、未交数量不能一起导出</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_12()"> 领星链接</a></li>
+                                    <li><strong>出货需求功能</strong>  </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 日常任务卡片 -->
+                    <div class="card daily-tasks" data-detail="plan-daily">
+                        <div class="card-face card-front">
+                            <div class="card-icon">📝</div>
+                            <h3 class="card-title">部门需要做的</h3>
+                            <p class="card-description">点击卡片翻转查看详情</p>
+                            <div class="flip-hint">
+                                <i class="fas fa-sync-alt"></i> 点击翻转
+                            </div>
+                        </div>
+                        <div class="card-face card-back">
+                            <div class="card-content">
+                                <h3 class="card-title">部门需要做的</h3>
+                                <ul class="card-list">
+                                    <li><strong>采购计划审批</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_12()"> 领星链接</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="slide-indicator">4 / 6</div>
+            </div>
+        </div>
+        
+        <!-- 物流部门 -->
+        <div class="slide" id="slide-4">
+            <div class="slide-content">
+                <div class="header">
+                    <h1>物流部</h1>
+                    <h2>仓储管理与物流配送</h2>
+                    <div class="department-badge">物流与仓储管理</div>
+                </div>
+                <div class="cards-container">
+                    <!-- 可实现功能卡片 -->
+                    <div class="card available" data-detail="logistics-available">
+                        <div class="card-face card-front">
+                            <div class="card-icon">✓</div>
+                            <h3 class="card-title">可实现功能</h3>
+                            <p class="card-description">点击卡片翻转查看详情</p>
+                            <div class="flip-hint">
+                                <i class="fas fa-sync-alt"></i> 点击翻转
+                            </div>
+                        </div>
+                        <div class="card-face card-back">
+                            <div class="card-content">
+                                <h3 class="card-title">可实现功能</h3>
+                                <ul class="card-list">
+                                    <li><strong>物流时效与成本分析报表</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_17()"> 领星链接</a></li>
+                                    <li><strong>头程物流跟踪与管理</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_18()"> 领星链接</a></li>
+                                    <li><strong>FBA库存与在途库存监控</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_19()"> 领星链接</a></li>
+                                    <li><strong>海外仓库存与在途库存监控</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_20()"> 领星链接</a></li>
+                                    <li><strong>退货处理与逆向物流管理</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_21()"> 领星链接</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 不可实现功能卡片 -->
+                    <div class="card unavailable" data-detail="logistics-unavailable">
+                        <div class="card-face card-front">
+                            <div class="card-icon">✗</div>
+                            <h3 class="card-title">不可实现功能</h3>
+                            <p class="card-description">点击卡片翻转查看详情</p>
+                            <div class="flip-hint">
+                                <i class="fas fa-sync-alt"></i> 点击翻转
+                            </div>
+                        </div>
+                        <div class="card-face card-back">
+                            <div class="card-content">
+                                <h3 class="card-title">不可实现功能</h3>
+                                <ul class="card-list">
+                                    <li><strong>部分海外仓功能没有对接</strong> - 西邮海外仓组合SKU未对接</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 日常任务卡片 -->
+                    <div class="card daily-tasks" data-detail="logistics-daily">
+                        <div class="card-face card-front">
+                            <div class="card-icon">📝</div>
+                            <h3 class="card-title">部门需要做的</h3>
+                            <p class="card-description">点击卡片翻转查看详情</p>
+                            <div class="flip-hint">
+                                <i class="fas fa-sync-alt"></i> 点击翻转
+                            </div>
+                        </div>
+                        <div class="card-face card-back">
+                            <div class="card-content">
+                                <h3 class="card-title">部门需要做的</h3>
+                                <ul class="card-list">
+                                    <li><strong>海外仓维护</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_22()"> 领星链接</a></li>
+                                    <li><strong>海外仓SKU映射维护</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_22()"> 领星链接</a></li>
+                                    <li><strong>头程发货</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_20()"> 领星链接</a></li>
+                                    <li><strong>中转发货</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_23()"> 领星链接</a></li>
+                                    <li><strong>库存调拨</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_24()"> 领星链接</a></li>
+                                    <li><strong>移除收货</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_21()"> 领星链接</a></li>
+                                    <li><strong>VC订单发货</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_25()"> 领星链接</a></li>
+                                    <li><strong>退货处理</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_10()"> 领星链接</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="slide-indicator">5 / 6</div>
+            </div>
+        </div>
+        
+        <!-- 运营部门 -->
+        <div class="slide" id="slide-5">
+            <div class="slide-content">
+                <div class="header">
+                    <h1>运营部</h1>
+                    <h2>销售管理与业务数据查询</h2>
+                    <div class="department-badge">销售与运营管理</div>
+                </div>
+                <div class="cards-container">
+                    <!-- 可实现功能卡片 -->
+                    <div class="card available" data-detail="operation-available">
+                        <div class="card-face card-front">
+                            <div class="card-icon">✓</div>
+                            <h3 class="card-title">可实现功能</h3>
+                            <p class="card-description">点击卡片翻转查看详情</p>
+                            <div class="flip-hint">
+                                <i class="fas fa-sync-alt"></i> 点击翻转
+                            </div>
+                        </div>
+                        <div class="card-face card-back">
+                            <div class="card-content">
+                                <h3 class="card-title">可实现功能</h3>
+                                <ul class="card-list">
+                                    <li><strong>销售业绩查询</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_2()"> 领星链接</a></li>
+                                    <li><strong>Listing表现</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_26()"> 领星链接</a></li>
+                                    <li><strong>关键词排名</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_27()"> 领星链接</a></li>
+                                    <li><strong>客户评价与反馈管理</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_4()"> 领星链接</a></li>
+                                    <li><strong>多店铺销售数据汇总分析</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_28()"> 领星链接</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 不可实现功能卡片 -->
+                    <div class="card unavailable" data-detail="operation-unavailable">
+                        <div class="card-face card-front">
+                            <div class="card-icon">✗</div>
+                            <h3 class="card-title">不可实现功能</h3>
+                            <p class="card-description">点击卡片翻转查看详情</p>
+                            <div class="flip-hint">
+                                <i class="fas fa-sync-alt"></i> 点击翻转
+                            </div>
+                        </div>
+                        <div class="card-face card-back">
+                            <div class="card-content">
+                                <h3 class="card-title">不可实现功能</h3>
+                                <ul class="card-list">
+                                    <li><strong>VC订单无法自动同步</strong> - 需要手动导入VC订单数据</li>
+                                    <li><strong>沃尔玛平台产品利润不准确</strong> - 沃尔玛平台的利润计算存在偏差</li>
+                                    <li><strong>homedepot平台没有</strong> - 系统尚未接入homedepot平台</li>
+                                    <li><strong>部分产品一件代发存在问题</strong> - 需要手动在海外仓创建一件代发订单</li>
+                                    <li><strong>wayfair、美客多货件没有</strong> - 需要手动创建wayfair和美客多平台的货件</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 日常任务卡片 -->
+                    <div class="card daily-tasks" data-detail="operation-daily">
+                        <div class="card-face card-front">
+                            <div class="card-icon">📝</div>
+                            <h3 class="card-title">部门需要做的</h3>
+                            <p class="card-description">点击卡片翻转查看详情</p>
+                            <div class="flip-hint">
+                                <i class="fas fa-sync-alt"></i> 点击翻转
+                            </div>
+                        </div>
+                        <div class="card-face card-back">
+                            <div class="card-content">
+                                <h3 class="card-title">部门需要做的</h3>
+                                <ul class="card-list">
+                                    <li><strong>Listing信息维护（映射、负责人）</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_13()"> 领星链接</a></li>
+                                    <li><strong>采购计划创建</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_12()"> 领星链接</a></li>
+                                    <li><strong>海外仓备货单、发货单创建</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_20()"> 领星链接</a></li>
+                                    <li><strong>货权更换</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_29()"> 领星链接</a></li>
+                                    <li><strong>VC订单批量导入</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_25()"> 领星链接</a></li>
+                                    <li><strong>自发货订单自动规则设置</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_30()"> 领星链接</a></li>
+                                    <li><strong>SKU渠道状态维护</strong> -  <a href="javascript:void(0);"  target="_blank" onclick="customFunction_cp_1()"> 领星链接</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="slide-indicator">6 / 6</div>
+            </div>
+        </div>
+        
+        <div class="navigation">
+            <button class="nav-btn" id="prev-btn"><i class="fas fa-arrow-left"></i></button>
+            <button class="nav-btn" id="next-btn"><i class="fas fa-arrow-right"></i></button>
+        </div>
+    </div>
+
+    <!-- 全屏详情页 -->
+    <div class="fullscreen-detail" id="fullscreen-detail">
+        <div class="detail-header">
+            <div class="detail-icon" id="detail-icon">✓</div>
+            <h2 class="detail-title" id="detail-title">可实现功能</h2>
+            <button class="back-btn" id="detail-back-btn"><i class="fas fa-arrow-left"></i></button>
+        </div>
+        <div class="detail-content">
+            <ul class="detail-list" id="detail-list">
+                <!-- 内容将通过JavaScript动态填充 -->
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function customFunction_cp_1() {
+            //产品管理
+            //window.location.href = 'https://erp.lingxing.com/erp/productManage';
+            window.open('https://erp.lingxing.com/erp/productManage', '_blank', 'noopener,noreferrer');
+        }
+        
+        function customFunction_cp_2() {
+            //销量统计-亚马逊
+            //window.location.href = 'https://erp.lingxing.com/erp/mreport/salesStat';
+            window.open('https://erp.lingxing.com/erp/mreport/salesStat', '_blank', 'noopener,noreferrer');
+        }
+        function customFunction_cp_3() {
+            //竞品监控-亚马逊
+            //window.location.href = 'https://erp.lingxing.com/erp/CompetitiveMonitor';
+            window.open('https://erp.lingxing.com/erp/CompetitiveMonitor', '_blank', 'noopener,noreferrer');
+        }
+        function customFunction_cp_4() {
+            //Review
+            //window.location.href = 'https://erp.lingxing.com/erp/review';
+            window.open('https://erp.lingxing.com/erp/review', '_blank', 'noopener,noreferrer');
+        }
+        function customFunction_cp_5() {
+            //退货分析
+            //window.location.href = 'https://erp.lingxing.com/erp/mreport/returnAnalysis';
+            window.open('https://erp.lingxing.com/erp/mreport/returnAnalysis', '_blank', 'noopener,noreferrer');
+        }
+        function customFunction_cp_6() {
+            //利润报表-亚马逊
+            //window.location.href = 'https://erp.lingxing.com/erp/ProfitReport';
+            window.open('https://erp.lingxing.com/erp/ProfitReport', '_blank', 'noopener,noreferrer');
+        }
+        function customFunction_cp_7() {
+            //供应商
+            //window.location.href = 'https://erp.lingxing.com/erp/msupply/supplier';
+            window.open('https://erp.lingxing.com/erp/msupply/supplier', '_blank', 'noopener,noreferrer');
+        }
+        function customFunction_cp_8() {
+            //采购成本与价格趋势分析
+            //window.location.href = 'https://erp.lingxing.com/erp/msupply/PurchaseOrderBoard';
+            window.open('https://erp.lingxing.com/erp/msupply/PurchaseOrderBoard', '_blank', 'noopener,noreferrer');
+        }
+        function customFunction_cp_9() {
+            //采购订单
+            //window.location.href = 'https://erp.lingxing.com/erp/msupply/purchaseOrder';
+            window.open('https://erp.lingxing.com/erp/msupply/purchaseOrder', '_blank', 'noopener,noreferrer');
+        }
+        function customFunction_cp_10() {
+            //入库单
+            //window.location.href = 'https://erp.lingxing.com/erp/msupply/inboundManual';
+            window.open('https://erp.lingxing.com/erp/msupply/inboundManual', '_blank', 'noopener,noreferrer');
+        }
+        function customFunction_cp_11() {
+            //供应商账期与付款管理
+            //window.location.href = 'https://erp.lingxing.com/erp/fundsPayPoolList';
+            window.open('https://erp.lingxing.com/erp/fundsPayPoolList', '_blank', 'noopener,noreferrer');
+        }
+        function customFunction_cp_12() {
+            //采购计划
+            //window.location.href = 'https://erp.lingxing.com/erp/msupply/purchasePlan';
+            window.open('https://erp.lingxing.com/erp/msupply/purchasePlan', '_blank', 'noopener,noreferrer');
+        }
+        function customFunction_cp_13() {
+            //Listing
+            //window.location.href = 'https://erp.lingxing.com/erp/listing';
+            window.open('https://erp.lingxing.com/erp/listing', '_blank', 'noopener,noreferrer');
+        }
+        function customFunction_cp_14() {
+            //质检
+            //window.location.href = 'https://erp.lingxing.com/erp/msupply/qualityCheckStorage';
+            window.open('https://erp.lingxing.com/erp/msupply/qualityCheckStorage', '_blank', 'noopener,noreferrer');
+        }
+        function customFunction_cp_15() {
+            //加工单
+            //window.location.href = 'https://erp.lingxing.com/erp/msupply/processingOrderBatch';
+            window.open('https://erp.lingxing.com/erp/msupply/processingOrderBatch', '_blank', 'noopener,noreferrer');
+        }
+        function customFunction_cp_16() {
+            //库存明细
+            //window.location.href = 'https://erp.lingxing.com/erp/msupply/warehouseDetail';
+            window.open('https://erp.lingxing.com/erp/msupply/warehouseDetail', '_blank', 'noopener,noreferrer');
+        }
+        function customFunction_cp_17() {
+            //头程对账
+            //window.location.href = 'https://erp.lingxing.com/erp/fbaAccountChecking';
+            window.open('https://erp.lingxing.com/erp/fbaAccountChecking', '_blank', 'noopener,noreferrer');
+        }
+        function customFunction_cp_18() {
+            //头程物流单
+            //window.location.href = 'https://erp.lingxing.com/erp/headWayLogisticsOrder';
+            window.open('https://erp.lingxing.com/erp/headWayLogisticsOrder', '_blank', 'noopener,noreferrer');
+        }
+        function customFunction_cp_19() {
+            //FBA库存明细
+            //window.location.href = 'https://erp.lingxing.com/erp/msupply/fbaInventory';
+            window.open('https://erp.lingxing.com/erp/msupply/fbaInventory', '_blank', 'noopener,noreferrer');
+        }
+        function customFunction_cp_20() {
+            //海外仓备货单
+            //window.location.href = 'https://erp.lingxing.com/erp/msupply/OverseaStockingList';
+            window.open('https://erp.lingxing.com/erp/msupply/OverseaStockingList', '_blank', 'noopener,noreferrer');
+        }
+        function customFunction_cp_21() {
+            //移除入库单
+            //window.location.href = 'https://erp.lingxing.com/erp/msupply/removeInbound';
+            window.open('https://erp.lingxing.com/erp/msupply/removeInbound', '_blank', 'noopener,noreferrer');
+        }
+        function customFunction_cp_22() {
+            //仓库设置
+            //window.location.href = 'https://erp.lingxing.com/erp/warehouseSetting';
+            window.open('https://erp.lingxing.com/erp/warehouseSetting', '_blank', 'noopener,noreferrer');
+        }
+        function customFunction_cp_23() {
+            //发货单
+            //window.location.href = 'https://erp.lingxing.com/erp/msupply/deliveryOrder';
+            window.open('https://erp.lingxing.com/erp/msupply/deliveryOrder', '_blank', 'noopener,noreferrer');
+        }
+        function customFunction_cp_24() {
+            //调拨单
+            //window.location.href = 'https://erp.lingxing.com/erp/msupply/requisition';
+            window.open('https://erp.lingxing.com/erp/msupply/requisition', '_blank', 'noopener,noreferrer');
+        }
+        function customFunction_cp_25() {
+            //订单管理-多平台
+            //window.location.href = 'https://erp.lingxing.com/erp/mmulti/mpOrderManagement';
+            window.open('https://erp.lingxing.com/erp/mmulti/mpOrderManagement', '_blank', 'noopener,noreferrer');
+        }
+        function customFunction_cp_26() {
+            //业绩报表
+            //window.location.href = 'https://erp.lingxing.com/erp/PerformanceReport';
+            window.open('https://erp.lingxing.com/erp/PerformanceReport', '_blank', 'noopener,noreferrer');
+        }
+        function customFunction_cp_27() {
+            //关键词排名
+            //window.location.href = 'https://erp.lingxing.com/erp/keywordRanking';
+            window.open('https://erp.lingxing.com/erp/keywordRanking', '_blank', 'noopener,noreferrer');
+        }
+        function customFunction_cp_28() {
+            //销量统计-多平台
+            //window.location.href = 'https://erp.lingxing.com/erp/mmulti/multiSalesStat';
+            window.open('https://erp.lingxing.com/erp/mmulti/multiSalesStat', '_blank', 'noopener,noreferrer');
+        }
+        function customFunction_cp_29() {
+            //调整单
+            //window.location.href = 'https://erp.lingxing.com/erp/msupply/adjustmentSheet';
+            window.open('https://erp.lingxing.com/erp/msupply/adjustmentSheet', '_blank', 'noopener,noreferrer');
+        }
+        function customFunction_cp_30() {
+            //订单规则
+            //window.location.href = 'https://erp.lingxing.com/erp/mmulti/mpOrderRule';
+            window.open('https://erp.lingxing.com/erp/mmulti/mpOrderRule', '_blank', 'noopener,noreferrer');
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const slides = document.querySelectorAll('.slide');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const cards = document.querySelectorAll('.card');
+            const fullscreenDetail = document.getElementById('fullscreen-detail');
+            const detailTitle = document.getElementById('detail-title');
+            const detailIcon = document.getElementById('detail-icon');
+            const detailList = document.getElementById('detail-list');
+            const detailBackBtn = document.getElementById('detail-back-btn');
+            let currentSlide = 0;
+            
+            // 显示当前幻灯片
+            function showSlide(index) {
+                slides.forEach(slide => slide.classList.remove('active'));
+                slides[index].classList.add('active');
+                currentSlide = index;
+            }
+            
+            // 下一张幻灯片
+            function nextSlide() {
+                let next = currentSlide + 1;
+                if (next >= slides.length) next = 0;
+                showSlide(next);
+            }
+            
+            // 上一张幻灯片
+            function prevSlide() {
+                let prev = currentSlide - 1;
+                if (prev < 0) prev = slides.length - 1;
+                showSlide(prev);
+            }
+            
+            // 按钮事件
+            prevBtn.addEventListener('click', prevSlide);
+            nextBtn.addEventListener('click', nextSlide);
+            
+            // 键盘事件
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'ArrowLeft') {
+                    prevSlide();
+                } else if (e.key === 'ArrowRight' || e.key === ' ') {
+                    nextSlide();
+                } else if (e.key === 'Escape') {
+                    // ESC键关闭详情页面
+                    fullscreenDetail.classList.remove('active');
+                }
+            });
+            
+            // 卡片点击事件 - 显示全屏详情
+            cards.forEach(card => {
+                card.addEventListener('click', function() {
+                    const cardType = this.classList.contains('available') ? 'available' : 
+                                    this.classList.contains('unavailable') ? 'unavailable' : 'daily-tasks';
+                    
+                    // 获取卡片数据
+                    const title = this.querySelector('.card-title').textContent;
+                    const listItems = this.querySelectorAll('.card-list li');
+                    
+                    // 设置详情页标题
+                    detailTitle.textContent = title;
+                    
+                    // 设置详情页图标和颜色
+                    if (cardType === 'available') {
+                        detailIcon.style.background = 'linear-gradient(135deg, var(--success), #27ae60)';
+                        detailIcon.textContent = '✓';
+                        detailList.className = 'detail-list';
+                    } else if (cardType === 'unavailable') {
+                        detailIcon.style.background = 'linear-gradient(135deg, var(--warning), #c0392b)';
+                        detailIcon.textContent = '✗';
+                        detailList.className = 'detail-list unavailable-detail';
+                    } else {
+                        detailIcon.style.background = 'linear-gradient(135deg, var(--info), #2980b9)';
+                        detailIcon.textContent = '📝';
+                        detailList.className = 'detail-list daily-detail';
+                    }
+                    
+                    // 填充详情列表
+                    detailList.innerHTML = '';
+                    listItems.forEach(item => {
+                        const li = document.createElement('li');
+                        li.innerHTML = item.innerHTML;
+                        detailList.appendChild(li);
+                    });
+                    
+                    // 显示全屏详情
+                    fullscreenDetail.classList.add('active');
+                });
+            });
+            
+            // 返回按钮事件
+            detailBackBtn.addEventListener('click', function() {
+                fullscreenDetail.classList.remove('active');
+            });
+            
+            // 初始化显示第一张幻灯片
+            showSlide(0);
+        });
+    </script>
+</body>
+</html>
